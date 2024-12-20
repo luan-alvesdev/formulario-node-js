@@ -1,0 +1,7 @@
+{
+id: number          (passado pelo banco de dados)
+titulo: string      (passado via json pelo usuário)
+descricao: string   (passado via json pelo usuário)
+data: date          (passado via backend)
+status: boolean     (passado via backend como false)
+}

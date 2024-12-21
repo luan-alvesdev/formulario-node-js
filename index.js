@@ -1,15 +1,13 @@
 const express = require("express");
+require("dotenv").config();
 const mongoose = require("mongoose");
 const Task = require("./model/Task");
 const app = express();
 
 app.use(express.json());
 
-const mongoURI =
-  "mongodb+srv://qa:123qa@cluster0.wx9vx.mongodb.net/to-do-database?retryWrites=true&w=majority&appName=Cluster0";
-
 mongoose
-  .connect(mongoURI)
+  .connect(process.env.mongo_URI)
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((err) => console.error("Erro ao conectar ao MongoDB:", err));
 
@@ -29,8 +27,6 @@ app.post("/api/tarefa/cadastrar", async (req, res) => {
   // desta forma garanto estar pegando apenas os valores que eu quero
   const titulo = req.body.titulo;
   const descricao = req.body.descricao;
-  const data = new Date();
-  const status = false;
 
   //verificação para garantir não enviar números no título
   if (typeof titulo !== "string") {
@@ -57,25 +53,43 @@ app.post("/api/tarefa/cadastrar", async (req, res) => {
       });
   }
 
-  const task = new Task({ titulo, descricao, data, status });
+  const task = new Task({ titulo, descricao });
   await task.save();
   res.status(201).json({ message: "Tarefa cadastrada com sucesso!" });
 });
 
-app.delete("/api/tarefa/deletar", (req, res) => {
-  const titulo = req.body.titulo;
-  // const token = req.body.token;
-  // if (!token) {
-  //   res.status(400).send("Token não encontrado, favor informar.");
-  // }
-  // if (token != "abc") {
-  //   res.status(401).send("Token inválido.");
-  // }
-  if (!titulo) {
-    res.status(404).send("Favor informar o título da tarefa");
-    return;
+app.patch("/api/tarefa/editar/status/:id", async (req, res) => {
+  const id = req.params.id;
+  const status = req.body.status;
+
+  // Verificar se o status fornecido é válido
+  const validStatuses = ["TODO", "DOING", "DONE"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ error: "Status inválido." });
   }
-  tarefas = tarefas.filter((elemento) => elemento.titulo != titulo);
+
+  try {
+    const task = await Task.findByIdAndUpdate(id, { status }, { new: true });
+    if (!task) {
+      return res.status(404).json({ error: "Tarefa não encontrada." });
+    }
+    res
+      .status(200)
+      .json({ message: "Status da tarefa atualizado com sucesso!", task });
+  } catch (err) {
+    console.error("Erro ao atualizar status da tarefa:", err);
+    res.status(500).json({ error: "Erro ao atualizar status da tarefa" });
+  }
+});
+
+app.delete("/api/tarefa/deletar/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const task = await Task.findByIdAndDelete(id);
+
+  if (!task) {
+    return res.status(404).json({ error: "Tarefa não encontrada." }); // 404 = Not Found
+  }
   res.status(200).send("Tarefa apagada com sucesso!");
 });
 

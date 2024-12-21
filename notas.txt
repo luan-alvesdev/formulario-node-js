@@ -5,3 +5,9 @@ descricao: string   (passado via json pelo usuário)
 data: date          (passado via backend)
 status: boolean     (passado via backend como false)
 }
+
+
+
+rota para atualizar o status /api/tarefa/editar/status/:id
+
+rota para atualizar dados do titulo e descricao   /api/tarefa/editar/:id

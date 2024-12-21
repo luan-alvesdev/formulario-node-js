@@ -5,8 +5,12 @@ const TaskSchema = new mongoose.Schema(
   {
     titulo: { type: String, required: true },
     descricao: { type: String, required: true },
-    data: { type: Date, required: true },
-    status: { type: Boolean, required: true },
+    status: {
+      type: String,
+      enum: ["TODO", "DOING", "DONE"],
+      default: "TODO",
+      required: true,
+    },
   },
   { timestamps: true }
 );

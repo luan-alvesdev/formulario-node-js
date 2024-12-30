@@ -1,10 +1,13 @@
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
 const mongoose = require("mongoose");
 const Task = require("./model/Task");
 const swaggerSetup = require("./swagger");
 const swagger = require("./swagger");
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 
@@ -42,22 +45,9 @@ app.post("/api/tarefa/cadastrar", async (req, res) => {
     return;
   }
 
-  // Verificar no banco se já existe uma tarefa com o mesmo título ou descrição
-  const tarefaExistente = await Task.findOne({
-    $or: [{ titulo }, { descricao }],
-  });
-
-  if (tarefaExistente) {
-    return res
-      .status(409) // 409 = Conflito
-      .json({
-        error: "Já existe uma tarefa com este título ou descrição.",
-      });
-  }
-
   const task = new Task({ titulo, descricao });
-  await task.save();
-  res.status(201).json({ message: "Tarefa cadastrada com sucesso!" });
+  const objetoDeRetorno = await task.save();
+  res.status(201).json(objetoDeRetorno);
 });
 
 app.put("/api/tarefa/editar/:id", async (req, res) => {
